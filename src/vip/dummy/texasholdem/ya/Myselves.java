@@ -44,5 +44,4 @@ public class Myselves {
             return 0;
         }
     }
-    public String judge
 }

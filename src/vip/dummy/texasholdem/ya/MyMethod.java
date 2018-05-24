@@ -1,25 +1,30 @@
 package vip.dummy.texasholdem.ya;
 
 import com.sun.xml.internal.ws.client.dispatch.DataSourceDispatch;
-import vip.dummy.texasholdem.indication.DealIndication;
-import vip.dummy.texasholdem.indication.NewPeerIndication;
-import vip.dummy.texasholdem.indication.NewRoundIndication;
+import vip.dummy.texasholdem.bean.Player;
+import vip.dummy.texasholdem.indication.*;
+import vip.dummy.texasholdem.playerai.PlayerAI;
 
 import java.util.ArrayList;
 
 public class MyMethod {
     final String myName = "ya";
-    int my_index;      //自己在playList中的 index;
-    String[] mycards;  //自己的手牌
-    String[] table_cards; //桌上的牌
-    String myStatus; //自己的处境（根据手牌和桌牌判断）
+    String myPosition = "MP";
+    int my_index;           //自己在playList中的 index;
+    String[] mycards;       //自己的手牌
+    String myStatus;        //自己的处境（根据手牌和桌牌判断）
+    String[] table_cards;   //桌上的牌
+    public int roundCount = 1;
+    String table_same_color; //桌牌有 >= 3 的同花，要小心对方同花
+    String roundName;       //第几圈，Deal,Flop,Turn,River
+    int minBet;
 
-    String roundName;  //第几圈，Deal,Flop,Turn,River
-
-    ArrayList<PropertyData> playerList;
+    ArrayList<PropertyData> playerList; //玩家列表  包含属性PropertyData
     public static MyMethod myMethod;
 
-    public MyMethod(){}
+    public MyMethod(){
+        this.myMethod = this;
+    }
 
     /**
     第一轮开始前，每当接收NewPeer消息，更细 玩家列表playList,更新自己的my_index
@@ -27,12 +32,15 @@ public class MyMethod {
     public void myNewPeer(NewPeerIndication newPeerIndication){
         ArrayList<PropertyData> temp = new ArrayList<>();
         for(int i = 0; i < newPeerIndication.getData().length; i++){     //更新newPeer
-            if(newPeerIndication.getData()[i] == myName){
+            if(newPeerIndication.getData()[i].equals( myName)){
                 this.my_index = i;
             }
             temp.add(new PropertyData(newPeerIndication.getData()[i]));
         }
         playerList = temp;
+        for(int i = 0; i < playerList.size(); i++){
+            System.out.println(playerList.get(i).name);
+        }
     }
 
     /**
@@ -47,7 +55,7 @@ public class MyMethod {
         setSmallBlind(newRoundIndication.getData().getTable().getSmallBlind().getPlayerName());//更新小盲
         setBigBlind(newRoundIndication.getData().getTable().getBigBlind().getPlayerName());//更新大盲
         for(int i = 0; i < playerList.size(); i++){  //更新UTG和Cutoff,Button
-            if(playerList.get(i).name == newRoundIndication.getData().getTable().getBigBlind().getPlayerName()){
+            if(playerList.get(i).name .equals( newRoundIndication.getData().getTable().getBigBlind().getPlayerName())){
                 playerList.get((i+1)%playerList.size()).setPosition("UTG");
                 playerList.get((i-1)%playerList.size()).setPosition("SB");
                 playerList.get((i-2)%playerList.size()).setPosition("Button");
@@ -56,6 +64,18 @@ public class MyMethod {
         }
         //更新自己的手牌
         this.mycards = updataMycards(newRoundIndication);
+        //更细自己的位置 myPosition
+        for(int i = 0; i < playerList.size(); i++){
+            if(playerList.get(i).name.equals( myName)){
+                myPosition = playerList.get(i).getPosition();
+                break;
+            }
+        }
+        //更新roundCount
+        this.roundCount = newRoundIndication.getData().getTable().getRoundCount();
+
+        //根据发的牌，判断自身处境   TODO 干，跟，观望，溜了
+        this.myStatus = MyTactic.firstTactic(this.mycards);
     }
 
     /**
@@ -66,24 +86,148 @@ public class MyMethod {
         this.roundName = dealIndication.getData().getTable().getRoundName();
         //更新桌上的牌
         this.table_cards = dealIndication.getData().getTable().getBoard();
-        //根据发的牌，判断自身处境
-
-
-    }
-
-    public void myAction(){
+        //根据发的牌，判断自身处境   TODO 干，跟，观望，溜了
+        this.myStatus = MyTactic.nextTactic(this.mycards,this.table_cards);
 
     }
 
+    /**
+     * 根据上一手玩家行动 “call”, “check”, “fold”, “allin”, “raise”, “bet”
+     */
+    public void myAction(ActionIndication actionIndication){
+        this.minBet = actionIndication.getData().getSelf().getMinBet();
+        switch(roundName){
+            case "Deal":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("跟") && minBet < 100){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("观望") && minBet < 20){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }else{
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            case "Flop":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("跟") && minBet < 100){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("观望") && minBet < 20){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }else{
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            case "Turn":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("跟") && minBet < 100){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("观望") && minBet < 20){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }else{
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            case "River":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("跟") && minBet < 100){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("观望") && minBet < 20){
+                    PlayerAI.playerAI.call();
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }else{
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            default:
+                PlayerAI.playerAI.fold();
+                break;
+        }
+    }
 
-    public void myBet(){
+    /**
+     * 押注 先手, 建议是“bet”, 也可以是 “check”, “fold”, “allin” 中的其中一种
+     */
+    public void myBet(){   //第几圈，Deal,Flop,Turn,River
+        switch(roundName){
+            case "Deal":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("跟")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("观望")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }
 
+                break;
+            case "Flop":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("跟")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("观望")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            case "Turn":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("跟")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("观望")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+            case "River":
+                if(myStatus.equals("干")){
+                    PlayerAI.playerAI.allIn();
+                }else if(myStatus.equals("跟")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("观望")){
+                    PlayerAI.playerAI.bet(20);
+                }else if(myStatus.equals("溜了")){
+                    PlayerAI.playerAI.fold();
+                }
+                break;
+                default:
+                    PlayerAI.playerAI.check();
+                    break;
+        }
     }
 
     /**
     记录每个玩家的行为，属性保存在PropertyData
      */
-    public void myShowAction(){
+    public void myShowAction(ShowActionIndication showActionIndication){
+        String the_name = showActionIndication.getData().getAction().getPlayerName();
+        String the_action = showActionIndication.getData().getAction().getAction();
+        for(int i = 0; i < playerList.size(); i++){
+            if(playerList.get(i).name.equals(the_name)){
+                if(the_action.equals("fold")){
+                    playerList.get(i).first_fold_count++;
+                }else if(the_action.equals("allIn")){
+                    playerList.get(i).first_allIn_count++;
+                }
+            }
+        }
+
+
 
     }
 
@@ -108,7 +252,7 @@ public class MyMethod {
     //设置小盲
     public void setSmallBlind(String sb_name){
         for(int i = 0; i < playerList.size(); i++){
-            if(playerList.get(i).name == sb_name){
+            if(playerList.get(i).name .equals(sb_name)){
                 playerList.get(i).setPosition("SB");
                 return;
             }
@@ -117,7 +261,7 @@ public class MyMethod {
     //设置大盲
     public void setBigBlind(String bb_name){
         for(int i = 0; i < playerList.size(); i++){
-            if(playerList.get(i).name == bb_name){
+            if(playerList.get(i).name.equals(bb_name)){
                 playerList.get(i).setPosition("BB");
                 return;
             }
