@@ -33,7 +33,7 @@ public class MyTactic {
             return "跟";
         }
         if(hasA(mycards)){
-            return "观望";
+            return "跟";
         }
         if(isSameColor(mycards)){
             return "观望";
@@ -41,6 +41,11 @@ public class MyTactic {
         return "溜了";
     }
 
+    /**
+     *
+     *
+     */
+    //TODO 没有判断 组牌能形成单对，
     public static String nextTactic(String[] mycards, String[] table_cards){
         if(isThreeOrFour(mycards,table_cards).equals("三条")){
             return "干";

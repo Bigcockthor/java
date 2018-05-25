@@ -75,11 +75,14 @@ public class MyMethod {
                 myPosition = playerList.get(i).getPosition();
                 break;
             }
-        }
-        //更新roundCount*/
+        }*/
+
+        //更新roundCount
         this.roundCount = newRoundIndication.getData().getTable().getRoundCount();
         System.out.println("newRound -> 更新roundCount: " + roundCount);
 
+        //更新roundName
+        this.roundName = "Deal";
         //根据发的牌，判断自身处境   TODO 干，跟，观望，溜了
         this.myStatus = MyTactic.firstTactic(this.mycards);
         System.out.println("newRound -> 更新myStatus: " + myStatus);
@@ -118,44 +121,60 @@ public class MyMethod {
         switch(roundName){
             case "Deal":
                 if(myStatus.equals("干")){
+                    System.out.println("执行 Deal 干");
                     int randomNum = (int)(Math.random()*10);
                     if(randomNum >= 7){
                         PlayerAI.playerAI.allIn();
+                        System.out.println("随机 执行 allin 。rendom:"+randomNum);
                     }else if(randomNum >= 3){
+                        System.out.println("随机 执行 call 。rendom:"+randomNum);
                         PlayerAI.playerAI.call();
                     }else{
+                        System.out.println("随机 执行 raise 。rendom:"+randomNum);
                         PlayerAI.playerAI.raise();
                     }
 
                 }else if(myStatus.equals("跟") ){
+                    System.out.println("执行 Deal 跟");
                     if(this.minBet <= 2 * BigBlind ){
+                        System.out.println("执行 minBet <= 2 * BigBlind");
                         PlayerAI.playerAI.call();
                     }else{
-                        PlayerAI.playerAI.check();
+                        System.out.println("执行 minBet !<= 2 * BigBlind");
+                        PlayerAI.playerAI.fold();
                     }
 
                 }else if(myStatus.equals("观望")){
+                    System.out.println("执行 Deal 观望");
+                    //TODO 这个bug 好好看看 大盲位置竟然弃牌?!  小盲也弃牌？？
                     if(minBet <= BigBlind){
+                        System.out.println("还是明明执行call，却给了folk???");
                         PlayerAI.playerAI.call();
                     }else{
+                        System.out.println("我看看到底是不是选的这个？？？ min<BB 还特马选这个？");
                         PlayerAI.playerAI.fold();
                     }
 
                 }else if(myStatus.equals("溜了")){
+                    System.out.println("执行 Deal 溜了");
                     if(minBet < BigBlind ){
+                        System.out.println("执行 minBet < BigBlind");
                         PlayerAI.playerAI.call();
                     }else{
+                        System.out.println("执行 minBet !< BigBlind");
                         PlayerAI.playerAI.fold();
                     }
 
                 }else{
-                    System.out.println("<错误报告>--myAction -Deal - fold"+ "myStatus: "+myStatus);
+                    System.out.println("<错误报告>有其他情况？--myAction -Deal - fold"+ "myStatus: "+myStatus);
                     PlayerAI.playerAI.fold();
                 }
+
 
                 break;
 
             case "Flop":
+                System.out.println("执行 Flop:");
                 if(myStatus.equals("干")){
                     int randomNum = (int)(Math.random()*10);
                     if(randomNum >= 7){
@@ -193,6 +212,7 @@ public class MyMethod {
                 break;
 
             case "Turn":
+                System.out.println("执行 Turn:");
                 if(myStatus.equals("干")){
                     int randomNum = (int)(Math.random()*10);
                     if(randomNum >= 7){
@@ -218,6 +238,7 @@ public class MyMethod {
                 break;
 
             case "River":
+                System.out.println("执行 River:");
                 if(myStatus.equals("干")){
                     PlayerAI.playerAI.allIn();
                 }else if(myStatus.equals("跟") ){
@@ -244,7 +265,7 @@ public class MyMethod {
         this.minBet = betIndication.getData().getSelf().getMinBet();  //更新最小下注金额
         System.out.println("myBet -> minBet: "+minBet);
         this.BigBlind = betIndication.getData().getGame().getBigBlind().getAmount();//更新大盲金额
-        System.out.println("myAction -> BigBlind: "+BigBlind);
+        System.out.println("myBction -> BigBlind: "+BigBlind);
 
         switch(roundName){
             case "Deal":
@@ -264,6 +285,7 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("观望")){
+                    System.out.println("是执行了这个 观望 吗？？？？？");  //找bug！！！！！！
                     if(minBet <= BigBlind){
                         PlayerAI.playerAI.check();
                     }else{
@@ -271,7 +293,7 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("溜了")){
-                    if(minBet <= BigBlind || minBet <=40){
+                    if(minBet <= BigBlind ){
                         PlayerAI.playerAI.check();
                     }else{
                         PlayerAI.playerAI.fold();
@@ -351,7 +373,17 @@ public class MyMethod {
     记录每个玩家的行为，属性保存在PropertyData
      */
     public void myShowAction(ShowActionIndication showActionIndication){
-
+        String the_name = showActionIndication.getData().getAction().getPlayerName();
+        int index = 0;
+        for(int i = 0; i < playerList.size(); i++){
+            if(playerList.get(i).name.equals(the_name)){
+                index = i;
+            }
+        }
+        String action = showActionIndication.getData().getAction().getAction();
+        int amount = showActionIndication.getData().getAction().getAmount();
+        System.out.println("--index: "+index+"  name: "+the_name);
+        System.out.println("--action: "+action+"  amount: "+amount);
     }
 
     /**
