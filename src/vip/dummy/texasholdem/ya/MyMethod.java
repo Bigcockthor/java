@@ -18,7 +18,7 @@ public class MyMethod {
     int minBet;
     int BigBlind;
 
-    String table_same_color; //桌牌有 >= 3 的同花，要小心对方同花
+    String table_same_color; // TODO 桌牌有 >= 3 的同花，要小心对方同花   （未处理）
     String myPosition = "MP";
 
 
@@ -148,21 +148,26 @@ public class MyMethod {
                     System.out.println("执行 Deal 观望");
                     //TODO 这个bug 好好看看 大盲位置竟然弃牌?!  小盲也弃牌？？
                     if(minBet <= BigBlind){
-                        System.out.println("还是明明执行call，却给了folk???");
+                        System.out.println("执行 Deal 观望 minBet <= BigBlind");
                         PlayerAI.playerAI.call();
                     }else{
-                        System.out.println("我看看到底是不是选的这个？？？ min<BB 还特马选这个？");
+                        System.out.println("执行 Deal 观望 min !<= BigBlind");
                         PlayerAI.playerAI.fold();
                     }
 
                 }else if(myStatus.equals("溜了")){
                     System.out.println("执行 Deal 溜了");
-                    if(minBet < BigBlind ){
+                    if(minBet < BigBlind ){    //判断位于 大盲 或者 小盲位置 押注小于大盲 0或一半
                         System.out.println("执行 minBet < BigBlind");
                         PlayerAI.playerAI.call();
                     }else{
-                        System.out.println("执行 minBet !< BigBlind");
-                        PlayerAI.playerAI.fold();
+                        int randomNum = (int)(Math.random()*10);
+                        if(randomNum <= 3 && minBet <= BigBlind){
+                            PlayerAI.playerAI.call();
+                        }else{
+                            System.out.println("执行 minBet !< BigBlind");
+                            PlayerAI.playerAI.fold();
+                        }
                     }
 
                 }else{

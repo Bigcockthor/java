@@ -7,6 +7,11 @@ import java.util.Arrays;
  * @description: 判断分析局势，制定策略- -
  * @author: Mr.Wang
  * @create: 2018-05-24 13:03
+ *
+ *      flush 在本文意思是 顺子。。。   same_color是同花
+ *      顺子 的实际英文应该是 straight  —。—
+ *
+ *       H红桃 S黑桃 D方块 C草花  HSDC
  **/
 public class MyTactic {
 
@@ -19,11 +24,10 @@ public class MyTactic {
             if(mycards[0].charAt(0)=='A'||
                     mycards[0].charAt(0)=='K'||
                     mycards[0].charAt(0)=='Q'||
-                    mycards[0].charAt(0)=='J'||
-                    mycards[0].charAt(0)=='T'){
-                return "干";  // TT +
+                    mycards[0].charAt(0)=='J'){
+                return "干";  // JJ +
             }
-            return "跟";   //对子 99-
+            return "跟";   //对子 TT-
         }
         //再判断 单牌
         if(isA_KQJ(mycards)){
@@ -45,48 +49,84 @@ public class MyTactic {
      *
      *
      */
-    //TODO 没有判断 组牌能形成单对，
+    //TODO 没有判断 组牌能形成单对，(貌似完成了)
     public static String nextTactic(String[] mycards, String[] table_cards){
-        if(isThreeOrFour(mycards,table_cards).equals("三条")){
-            return "干";
-        }
+
         if(isThreeOrFour(mycards,table_cards).equals("葫芦")){
             return "干";
         }
         if(isThreeOrFour(mycards,table_cards).equals("四条")){
             return "干";
         }
+        if( isSameColor(mycards,table_cards) == 0){ //同花  isSameColor是差几张同花
+            return "干";
+        }
         if(isFlush(mycards,table_cards) == 0){   //顺子
+            if(table_max_same_color(mycards,table_cards)){
+                return "溜了";
+            }
+            return "干";
+        }
+        if(isThreeOrFour(mycards,table_cards).equals("三条")){
+            if(table_max_same_color(mycards,table_cards)){
+                return "溜了";
+            }
             return "干";
         }
 
         if(isThreeOrFour(mycards,table_cards).equals("两对")){
-            if(!tableIsPair(table_cards)){
+            if(table_max_same_color(mycards,table_cards)){
+                return "溜了";
+            }
+            if(!tableIsPair(table_cards)|| handAndTable_pair(mycards,table_cards)){
                 return "干";
-            }else{
-                return "跟";
             }
         }
         if(isThreeOrFour(mycards,table_cards).equals("对子") && !tableIsPair(table_cards)){
             //if() TODO 如果组牌包含 AA KK JJ（非桌牌）直接allIn
             if(isAAKKQQ(mycards,table_cards)){
+                if(table_max_same_color(mycards,table_cards)){
+                    return "溜了";
+                }
                 return "干";
             }
         }
-        if(isSameColor(mycards,table_cards) == 0){  //同花
-            return "干";
+
+        if(isThreeOrFour(mycards,table_cards).equals("对子")){
+            if(handAndTable_pair(mycards,table_cards)){     //判断的是 手牌与桌牌组成的对子
+                if(table_max_same_color(mycards,table_cards)){
+                    return "溜了";
+                }
+                return "干";  //需要判断对子大小     // 判断了 对子至少 JJ+
+            }
         }
-        if(isFlush(mycards,table_cards) == 2){     //差一张顺子
-            return "跟";
+        //判断差一张同花  跟
+        if(isSameColor(mycards,table_cards) == 1 && table_cards.length <= 4){
+            if(table_cards.length == 3){
+                return "跟";
+            }
+            if(table_cards.length == 4){
+                return "观望";
+            }
         }
-        if(table_cards.length == 3 && isSameColor(mycards,table_cards)<=1){
-            return "跟";
+
+        //差一张顺子 0为顺子 1为有一个位置，2为有两个位置 构成顺子
+        if(isFlush(mycards,table_cards) == 2 && table_cards.length <= 4){
+            if(table_cards.length == 3){
+                return "观望";
+            }
+            return "观望";
         }
-        if(isFlush(mycards,table_cards) == 1){
+
+        if(isFlush(mycards,table_cards) == 1 && table_cards.length <= 3){
+            return "观望";
+        }
+        //判断nextTactic 是否能组成个小对子， 观望 TODO
+        if(isHandAndTable_pairTT(mycards,table_cards)){
             return "观望";
         }
         return "溜了";
-        //TODO 还得判断是不是同花 或者顺子  或者葫芦啥的
+        //TODO 还得判断是不是同花 或者顺子  或者葫芦啥的   （完成了！)
     }
 
 
@@ -225,6 +265,29 @@ public class MyTactic {
         }
         return false;
     }
+    //手牌 与 桌牌 是否能组成至少一个对子 且对子为 JJ+
+    public static boolean handAndTable_pair(String[] mycard, String[] table_cards){
+        char c1 = mycard[0].charAt(0);
+        char c2 = mycard[1].charAt(0);
+        if(c1 != 'A' && c1 != 'K' && c1 != 'Q' && c1 != 'J' ){
+            c1 = '0';
+        }
+        if(c2 != 'A' && c2 != 'K' && c2 != 'Q' && c2 != 'J' ){
+            c2 = '0';
+        }
+        if(c1 == '0' && c2 == '0'){
+            return false;
+        }
+        for(int i = 0; i < table_cards.length; i ++){
+            if(c1 != '0' && (c1 == table_cards[i].charAt(0))){
+                return true;
+            }
+            if(c2 != '0' && (c2 == table_cards[i].charAt(0))){
+                return true;
+            }
+        }
+        return false;
+    }
 
 
     //TODO 判断差几张构成同花
@@ -272,7 +335,7 @@ public class MyTactic {
                 poke[11] != 0 &&
                 poke[12] != 0 &&
                 poke[13] != 0 &&
-                poke[11] != 0 ){
+                poke[1] != 0 ){
             return 0;
         }
 
@@ -327,30 +390,98 @@ public class MyTactic {
     }
 
     public static boolean isAAKKQQ(String[] mycards, String[] table_cards){
-        if(mycards[0].charAt(0) == 'A'){
+
+        for(int k = 0; k <= 1; k++){
+            if(mycards[k].charAt(0) == 'A'){
+                for(int i = 0; i < table_cards.length; i++){
+                    if(table_cards[i].charAt(0) == 'A'){
+                        return true;
+                    }
+                }
+            }
+            if(mycards[k].charAt(0) == 'K'){
+                for(int i = 0; i < table_cards.length; i++){
+                    if(table_cards[i].charAt(0) == 'K'){
+                        return true;
+                    }
+                }
+            }
+            if(mycards[k].charAt(0) == 'Q'){
+                for(int i = 0; i < table_cards.length; i++){
+                    if(table_cards[i].charAt(0) == 'Q'){
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    //TODO 判断桌牌最大同花(>= 4) 且不和自己同色     H红桃 S黑桃 D方块 C草花  HSDC
+    public static boolean table_max_same_color(String[] mycards, String[] table_cards){
+        char[] a = new char[table_cards.length];
+        for(int i = 0; i < a.length; i++){
+            a[i] = table_cards[i].charAt(1);
+        }
+
+        char max_color;
+        int h = 0, s = 0, c = 0, d = 0;
+        for(int i = 0; i < a.length; i++){
+            if(a[i] == 'H') {
+                h++;
+            }else if(a[i] == 'S'){
+                s++;
+            }else if(a[i] == 'C'){
+                c++;
+            }else{
+                d++;
+            }
+        }
+        //判断hsdc谁最大 等于4 说明桌牌有四个同花
+        if(h >= 4){
+            max_color = 'H';
+        }else if(s >= 4){
+            max_color = 'S';
+        }else if(d >= 4){
+            max_color = 'D';
+        }else if(c >= 4){
+            max_color = 'C';
+        }else{
+            return false;
+        }
+        if(mycards[0].charAt(1) != max_color && mycards[1].charAt(1)!= max_color){
+            return true;
+        }
+        return false;
+    }
+
+    //组成小对子
+    public static boolean isHandAndTable_pairTT(String[] mycards, String[] table_cards){ // 77~TT
+        char c1 = mycards[0].charAt(0);
+        char c2 = mycards[1].charAt(0);
+        if(c1 == 'T' ||
+                c1 == '9' ||
+                c1 == '8' ||
+                c1 == '7' ){
             for(int i = 0; i < table_cards.length; i++){
-                if(table_cards[i].charAt(0) == 'A'){
+                if(c1 == table_cards[i].charAt(0)){
                     return true;
                 }
             }
         }
-        if(mycards[0].charAt(0) == 'K'){
+        if(c2 == 'T' ||
+                c2 == '9' ||
+                c2 == '8' ||
+                c2 == '7' ){
             for(int i = 0; i < table_cards.length; i++){
-                if(table_cards[i].charAt(0) == 'K'){
-                    return true;
-                }
-            }
-        }
-        if(mycards[0].charAt(0) == 'Q'){
-            for(int i = 0; i < table_cards.length; i++){
-                if(table_cards[i].charAt(0) == 'Q'){
+                if(c2 == table_cards[i].charAt(0)){
                     return true;
                 }
             }
         }
         return false;
     }
-
 
 
 }
