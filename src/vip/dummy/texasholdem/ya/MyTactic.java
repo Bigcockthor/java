@@ -49,7 +49,7 @@ public class MyTactic {
      *
      *
      */
-    //TODO 没有判断 组牌能形成单对，(貌似完成了)
+    //TODO 没有判断 组牌能形成单对，(貌似完成了)  flop阶段弃牌的问题 比如 AQ+25J A2+26J CH+CCCD花色弃牌
     public static String nextTactic(String[] mycards, String[] table_cards){
 
         if(isThreeOrFour(mycards,table_cards).equals("葫芦")){
@@ -121,8 +121,13 @@ public class MyTactic {
         if(isFlush(mycards,table_cards) == 1 && table_cards.length <= 3){
             return "观望";
         }
-        //判断nextTactic 是否能组成个小对子， 观望 TODO
+        //判断nextTactic 是否能组成个小对子， 观望
         if(isHandAndTable_pairTT(mycards,table_cards)){
+            return "观望";
+        }
+
+        //又增加 判断带A 小对  单 TODO 这个需要重新考虑以下要不要加上!!!!!
+        if(hasA(mycards)){
             return "观望";
         }
         return "溜了";
@@ -451,6 +456,7 @@ public class MyTactic {
             return false;
         }
         if(mycards[0].charAt(1) != max_color && mycards[1].charAt(1)!= max_color){
+            System.out.println("执行了 桌上四同花， 和自己不一样，赶快逃跑！！！");
             return true;
         }
         return false;

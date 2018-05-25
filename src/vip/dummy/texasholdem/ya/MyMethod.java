@@ -137,16 +137,16 @@ public class MyMethod {
                 }else if(myStatus.equals("跟") ){
                     System.out.println("执行 Deal 跟");
                     if(this.minBet <= 2 * BigBlind ){
-                        System.out.println("执行 minBet <= 2 * BigBlind");
+                        System.out.println("执行 minBet <= 2 * BigBlind ，跟");
                         PlayerAI.playerAI.call();
                     }else{
-                        System.out.println("执行 minBet !<= 2 * BigBlind");
+                        System.out.println("执行 minBet !<= 2 * BigBlind， 放弃跟，弃牌");
                         PlayerAI.playerAI.fold();
                     }
 
                 }else if(myStatus.equals("观望")){
                     System.out.println("执行 Deal 观望");
-                    //TODO 这个bug 好好看看 大盲位置竟然弃牌?!  小盲也弃牌？？
+                    //TODO 这个bug 得好好看看 大盲位置竟然弃牌?! 小盲也弃牌？？ OK BUG已修复，忘记重新赋值roundName了
                     if(minBet <= BigBlind){
                         System.out.println("执行 Deal 观望 minBet <= BigBlind");
                         PlayerAI.playerAI.call();
@@ -163,6 +163,7 @@ public class MyMethod {
                     }else{
                         int randomNum = (int)(Math.random()*10);
                         if(randomNum <= 3 && minBet <= BigBlind){
+                            System.out.println("randomNum: " + roundName);
                             PlayerAI.playerAI.call();
                         }else{
                             System.out.println("执行 minBet !< BigBlind");
@@ -198,7 +199,7 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("观望") ){
-                    if(minBet <= BigBlind && minBet <= 80){
+                    if(minBet <= BigBlind ){
                         PlayerAI.playerAI.call();
                     }else{
                         PlayerAI.playerAI.fold();
@@ -229,10 +230,18 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("跟") ){
-                    PlayerAI.playerAI.call();
+                    if(minBet <= 2* BigBlind){
+                        PlayerAI.playerAI.call();
+                    }else{
+                        PlayerAI.playerAI.fold();
+                    }
 
                 }else if(myStatus.equals("观望") ){
-                    PlayerAI.playerAI.call();
+                    if(minBet <= BigBlind){
+                        PlayerAI.playerAI.call();
+                    }else{
+                        PlayerAI.playerAI.fold();
+                    }
 
                 }else if(myStatus.equals("溜了")){
                     PlayerAI.playerAI.fold();
@@ -247,7 +256,11 @@ public class MyMethod {
                 if(myStatus.equals("干")){
                     PlayerAI.playerAI.allIn();
                 }else if(myStatus.equals("跟") ){
-                    PlayerAI.playerAI.call();
+                    if(minBet <= 2* BigBlind){
+                        PlayerAI.playerAI.call();
+                    }else{
+                        PlayerAI.playerAI.fold();
+                    }
                 }else if(myStatus.equals("观望") ){
                     PlayerAI.playerAI.fold();
                 }else if(myStatus.equals("溜了")){
@@ -257,7 +270,7 @@ public class MyMethod {
                 }
                 break;
             default:
-                System.out.println("输出了一次默认 《myAction》！！！！！！！！！！！！！！");
+                System.out.println("<错误报告>--输出了一次默认 《myAction》！！！！！！！！！！！！！！");
                 PlayerAI.playerAI.fold();
                 break;
         }
@@ -290,7 +303,7 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("观望")){
-                    System.out.println("是执行了这个 观望 吗？？？？？");  //找bug！！！！！！
+                    System.out.println("是执行了这个 观望 ？？？？？");  //找bug！！！！！！
                     if(minBet <= BigBlind){
                         PlayerAI.playerAI.check();
                     }else{
