@@ -162,7 +162,7 @@ public class MyMethod {
                         PlayerAI.playerAI.call();
                     }else{
                         int randomNum = (int)(Math.random()*10);
-                        if(randomNum <= 3 && minBet <= BigBlind){
+                        if(randomNum <= 2 && minBet <= BigBlind){
                             System.out.println("randomNum: " + roundName);
                             PlayerAI.playerAI.call();
                         }else{

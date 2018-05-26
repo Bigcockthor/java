@@ -42,6 +42,10 @@ public class MyTactic {
         if(isSameColor(mycards)){
             return "观望";
         }
+        // TODO  加上如果手牌点数和大于多少就跟
+        if(pokeNumRank_hand(mycards) >= 20){
+            return "跟";
+        }
         return "溜了";
     }
 
@@ -74,7 +78,7 @@ public class MyTactic {
             return "干";
         }
 
-        if(isThreeOrFour(mycards,table_cards).equals("两对")){
+        if(isThreeOrFour(mycards,table_cards).equals("两对")){   //自己手牌和桌牌能形成的两对
             if(table_max_same_color(mycards,table_cards)){
                 return "溜了";
             }
@@ -83,9 +87,9 @@ public class MyTactic {
             }
         }
         if(isThreeOrFour(mycards,table_cards).equals("对子") && !tableIsPair(table_cards)){
-            //if() TODO 如果组牌包含 AA KK JJ（非桌牌）直接allIn
+            //if() TODO 如果组牌包含 AA KK QQ（非桌牌）直接allIn
             if(isAAKKQQ(mycards,table_cards)){
-                if(table_max_same_color(mycards,table_cards)){
+                if(table_max_same_color(mycards,table_cards)){  //TODO 需要判断自己的最大对和 桌上最大牌
                     return "溜了";
                 }
                 return "干";
@@ -93,11 +97,11 @@ public class MyTactic {
         }
 
         if(isThreeOrFour(mycards,table_cards).equals("对子")){
-            if(handAndTable_pair(mycards,table_cards)){     //判断的是 手牌与桌牌组成的对子
+            if(handAndTable_pair(mycards,table_cards)){     //判断的是 手牌与桌牌组成的对子,对子至少 JJ+
                 if(table_max_same_color(mycards,table_cards)){
                     return "溜了";
                 }
-                return "干";  //需要判断对子大小     // 判断了 对子至少 JJ+
+                return "跟";  //需要判断对子大小     //
             }
         }
         //判断差一张同花  跟
@@ -127,9 +131,9 @@ public class MyTactic {
         }
 
         //又增加 判断带A 小对  单 TODO 这个需要重新考虑以下要不要加上!!!!!
-        if(hasA(mycards)){
+        /*if(hasA(mycards)){
             return "观望";
-        }
+        }*/
         return "溜了";
         //TODO 还得判断是不是同花 或者顺子  或者葫芦啥的   （完成了！)
     }
@@ -358,7 +362,7 @@ public class MyTactic {
             }
         }
 
-        //判断是不是四缺一
+        //判断是不是四缺一 TODO 有错误啊！！！！！！
         step = 1;
         for(int i = 1; i < poke.length; i++){
             if(poke[i] == 0) continue;
@@ -378,6 +382,27 @@ public class MyTactic {
     public static int pokeNum(char c){
         switch (c){
             case 'A':return 1;
+            case '2':return 2;
+            case '3':return 3;
+            case '4':return 4;
+            case '5':return 5;
+            case '6':return 6;
+            case '7':return 7;
+            case '8':return 8;
+            case '9':return 9;
+            case 'T':return 10;
+            case 'J':return 11;
+            case 'Q':return 12;
+            case 'K':return 13;
+            default: return 0;
+        }
+    }
+    public static int pokeNumRank_hand(String[] mycards){
+        return pokeNumRank(mycards[0].charAt(0))+pokeNumRank(mycards[1].charAt(0));
+    }
+    public static int pokeNumRank(char c){
+        switch (c){
+            case 'A':return 14;
             case '2':return 2;
             case '3':return 3;
             case '4':return 4;
@@ -488,6 +513,27 @@ public class MyTactic {
         }
         return false;
     }
+/*
+    public static boolean isHandPair_Little_TableSingleMax(String[] mycards,String[] table_cards){
 
+        char c1 = mycards[0].charAt(0);
+        for(int i = 0; i < table_cards.length; i++){
+            if(c1 == table_cards[i].charAt(0)){
+                c1 = table_cards[i].charAt(0);
+                return c1;
+            }
+        }
+
+        for(int i = 0; i < table_cards.length; i++){
+            if(c == table_cards[i].charAt(0)){
+                c = table_cards[i].charAt(0);
+                break;
+            }
+        }
+    }
+    public static int findMaxTableSingle(String[] table_cards){
+
+    }
+    */
 
 }
