@@ -24,13 +24,15 @@ import javax.websocket.WebSocketContainer;
  */
 public class TheClient {
 
-    /** private static final String HOST_ADDR = "ws://116.62.205.153/game/";
+    /**
+     * private static final String HOST_ADDR = "ws://116.62.205.153/game/";
      *
-    //         ws://47.97.21.103:8081  (比赛时改为这个)    ||"ws://ai.cad-stg.trendmicro.com"
+    //         ws://47.97.21.103:8081  (比赛时改为这个)    ||  "ws://ai.cad-stg.trendmicro.com"
     //         Ticket: gnvngl5iy53h3x2pfr34jmpxfdfpio  Port: 8081
                 密码： 164551  han123trend
-    //*/
-    private static final String HOST_ADDR = "ws://47.97.21.103";
+    //
+     */
+    private static final String HOST_ADDR = "ws://ai.cad-stg.trendmicro.com";
 
     public static void main(String[] args) throws DeploymentException, IOException,
             URISyntaxException {

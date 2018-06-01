@@ -8,21 +8,21 @@ import vip.dummy.texasholdem.playerai.PlayerAI;
 import java.util.ArrayList;
 
 public class MyMethod {
-    final String myName = "ya";
-    int my_index;           //自己在playList中的 index;
-    String[] mycards;       //自己的手牌
-    String myStatus = "跟";        //自己的处境（根据手牌和桌牌判断）
-    String[] table_cards;   //桌上的牌
-    public int roundCount = 1;
-    String roundName = "Deal";       //第几圈，Deal,Flop,Turn,River
-    int minBet;
-    int BigBlind;
+    private final String myName = "ya";
+    private int my_index;           //自己在playList中的 index;
+    private String[] mycards;       //自己的手牌
+    private String myStatus = "跟";        //自己的处境（根据手牌和桌牌判断）
+    private String[] table_cards;   //桌上的牌
+    private  int roundCount = 1;
+    private String roundName = "Deal";       //第几圈，Deal,Flop,Turn,River
+    private int minBet;
+    private int BigBlind;
 
     String table_same_color; // TODO 桌牌有 >= 3 的同花，要小心对方同花   （未处理）
     String myPosition = "MP";
 
 
-    ArrayList<PropertyData> playerList; //玩家列表  包含属性PropertyData
+    private ArrayList<PropertyData> playerList; //玩家列表  包含属性PropertyData
     public static MyMethod myMethod;
 
     public MyMethod(){
@@ -52,7 +52,6 @@ public class MyMethod {
     包含table 和 player
     方法里 更新自己的手牌
           更新所有玩家position （Button,SB,BB,UTG,Cutoff,MP）
-
      */
     public void myNewRound(NewRoundIndication newRoundIndication){
         //更细所有玩家位置positon
@@ -123,14 +122,14 @@ public class MyMethod {
                 if(myStatus.equals("干")){
                     System.out.println("执行 Deal 干");
                     int randomNum = (int)(Math.random()*10);
-                    if(randomNum >= 7){
+                    if(randomNum >= 8){
                         PlayerAI.playerAI.allIn();
-                        System.out.println("随机 执行 allin 。rendom:"+randomNum);
-                    }else if(randomNum >= 3){
-                        System.out.println("随机 执行 call 。rendom:"+randomNum);
+                        System.out.println("随机 执行 allin 。random:"+randomNum);
+                    }else if(randomNum >= 4){
+                        System.out.println("随机 执行 call 。random:"+randomNum);
                         PlayerAI.playerAI.call();
                     }else{
-                        System.out.println("随机 执行 raise 。rendom:"+randomNum);
+                        System.out.println("随机 执行 raise 。random:"+randomNum);
                         PlayerAI.playerAI.raise();
                     }
 
@@ -146,7 +145,6 @@ public class MyMethod {
 
                 }else if(myStatus.equals("观望")){
                     System.out.println("执行 Deal 观望");
-                    //TODO 这个bug 得好好看看 大盲位置竟然弃牌?! 小盲也弃牌？？ OK BUG已修复，忘记重新赋值roundName了
                     if(minBet <= BigBlind){
                         System.out.println("执行 Deal 观望 minBet <= BigBlind");
                         PlayerAI.playerAI.call();
@@ -163,7 +161,7 @@ public class MyMethod {
                     }else{
                         int randomNum = (int)(Math.random()*10);
                         if(randomNum <= 2 && minBet <= BigBlind){
-                            System.out.println("randomNum: " + roundName);
+                            System.out.println("randomNum: " + roundName+" 这是溜了 随机call");
                             PlayerAI.playerAI.call();
                         }else{
                             System.out.println("执行 minBet !< BigBlind");
@@ -175,7 +173,6 @@ public class MyMethod {
                     System.out.println("<错误报告>有其他情况？--myAction -Deal - fold"+ "myStatus: "+myStatus);
                     PlayerAI.playerAI.fold();
                 }
-
 
                 break;
 
