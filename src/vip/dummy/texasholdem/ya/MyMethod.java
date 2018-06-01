@@ -17,7 +17,7 @@ public class MyMethod {
     private String roundName = "Deal";       //第几圈，Deal,Flop,Turn,River
     private int minBet;
     private int BigBlind;
-
+    private int mychips;
     String table_same_color; // TODO 桌牌有 >= 3 的同花，要小心对方同花   （未处理）
     String myPosition = "MP";
 
@@ -117,6 +117,17 @@ public class MyMethod {
         System.out.println("myAction -> minBet: "+minBet);
         this.BigBlind = actionIndication.getData().getGame().getBigBlind().getAmount();//更新大盲金额
         System.out.println("myAction -> BigBlind: "+BigBlind);
+        this.mychips = actionIndication.getData().getSelf().getChips();
+        //判断当前筹码是否大于一万五
+
+        if(mychips >= 15000){
+            if(myStatus.equals("干") && minBet<=BigBlind){
+                PlayerAI.playerAI.call();
+            }else{
+                PlayerAI.playerAI.fold();
+            }
+        }
+
         switch(roundName){
             case "Deal":
                 if(myStatus.equals("干")){
@@ -259,7 +270,11 @@ public class MyMethod {
                         PlayerAI.playerAI.fold();
                     }
                 }else if(myStatus.equals("观望") ){
-                    PlayerAI.playerAI.fold();
+                    if(this.minBet <= BigBlind){
+                        PlayerAI.playerAI.call();
+                    }else {
+                        PlayerAI.playerAI.fold();
+                    }
                 }else if(myStatus.equals("溜了")){
                     PlayerAI.playerAI.fold();
                 }else{
@@ -357,6 +372,9 @@ public class MyMethod {
                     }
 
                 }else if(myStatus.equals("溜了")){
+                    if(minBet < BigBlind){
+                        PlayerAI.playerAI.check();
+                    }
                     PlayerAI.playerAI.fold();
                 }
                 break;
@@ -371,8 +389,15 @@ public class MyMethod {
                         PlayerAI.playerAI.fold();
                     }
                 }else if(myStatus.equals("观望")){
-                    PlayerAI.playerAI.fold();
+                    if(this.minBet <= BigBlind){
+                        PlayerAI.playerAI.call();
+                    }else{
+                        PlayerAI.playerAI.fold();
+                    }
                 }else if(myStatus.equals("溜了")){
+                    if(minBet < BigBlind){
+                        PlayerAI.playerAI.check();
+                    }
                     PlayerAI.playerAI.fold();
                 }
                 break;

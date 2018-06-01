@@ -1,5 +1,8 @@
 package vip.dummy.texasholdem.ya;
 
+import com.sun.tools.javac.code.Scope;
+import sun.security.util.Length;
+
 import java.util.Arrays;
 
 /**
@@ -43,7 +46,7 @@ public class MyTactic {
             return "观望";
         }
         // 加上如果手牌点数和大于多少就跟, 貌似多余
-        if(pokeNumRank_hand(mycards) >= 20){
+        if(pokeNumRank_hand(mycards) >= 22){
             return "观望";
         }
         return "溜了";
@@ -58,12 +61,15 @@ public class MyTactic {
 
         if(isThreeOrFour(mycards,table_cards).equals("四条")){
             if(table_isThreeOrFour(table_cards) == 4){ //如果桌牌是四条
-                if(isA_KQJ(mycards)){                  //手上有AKQJ 就干 否则观望
+                if(hasA(mycards)){                  //AX + BBBB  干
                     return "干";
-                }else{
-                    return "观望";
                 }
+                if(pokeNumRank_hand(mycards) >20){
+                    return "跟";
+                }
+                return "溜了";
             }
+
             return "干";
         }
 
@@ -74,13 +80,30 @@ public class MyTactic {
             return "干";
         }
 
-        if( isSameColor(mycards,table_cards) == 0){ //同花  isSameColor是差几张同花, 没有判断对方组成四条 葫芦
+        // 同花 2+3 没有判断对方组成四条 葫芦 , 判断桌牌是不是俩对、3条四条
+        if( isSameColor(mycards,table_cards) == 0){ //同花  isSameColor是差几张同花,
+            if(table_isTwoPairs(table_cards) || table_isThreeOrFour(table_cards) == 3){
+                return "观望";
+            }
             return "干";
         }
-        if(table_max_same_color(mycards,table_cards)){//桌上有四同花 且不和自己一样
+
+        // 判断 1+4 同花  isSameColor1_4 返回手牌rank值
+        if(isSameColor1_4(mycards,table_cards) > 2){
+            if(table_isTwoPairs(table_cards) || table_isThreeOrFour(table_cards) == 3){
+
+            }
+            if(isSameColor1_4(mycards,table_cards) == 14)return "干";
+            if(isSameColor1_4(mycards,table_cards) >= 11) return "跟";
+            return "观望";
+    }
+
+        //桌上有四同花 且不和自己一样
+        if(table_max_same_color(mycards,table_cards)){
             return "溜了";
         }
-        if(isFlush(mycards,table_cards) == 0){   //顺子
+        //顺子
+        if(isFlush(mycards,table_cards) == 0){
             return "干";
         }
 
@@ -89,8 +112,9 @@ public class MyTactic {
                 return "跟";
             }
             if(table_isThreeOrFour(table_cards) == 3){
-                if(isA_KQJ(mycards)){
-                    return "跟";
+                if(pokeNumRank(mycards[0].charAt(0)) >= 11||
+                        pokeNumRank(mycards[1].charAt(0)) >= 11){
+                    return "观望";
                 }
                 return "溜了";
             }
@@ -109,22 +133,40 @@ public class MyTactic {
             return "跟";
         }
 
+        //两对  在桌牌存在至少一个对子的情况下
         if(isThreeOrFour(mycards,table_cards).equals("两对") && !isSingle(table_cards)){
-            if(isPair(mycards))return "跟";
-            if(!isPair(mycards) && isHandAndTable_pair(mycards,table_cards)){
+            if(isPair(mycards)){
+                if(pokeNumRank_hand(mycards) >= 18){
+                    return "观望";
+                }
+                return "溜了";
+            }
+            if(!isPair(mycards) &&
+                    single_rank_pair(mycards,table_cards) >= single_rank_table(table_cards)){
                return "观望";
             }
             return "溜了";
         }
+
         if(isThreeOrFour(mycards,table_cards).equals("对子") && isSingle(table_cards)){
             if(countStraight(table_cards) == 1){
                 return "观望";
             }
-            if(isPair(mycards) && pokeNumRank(mycards[0].charAt(0))>= 11){
+            if(isPair(mycards) && pokeNumRank(mycards[0].charAt(0)) >= single_rank_table(table_cards)){
                 return "跟";
             }
+            if(isPair(mycards) && pokeNumRank(mycards[0].charAt(0)) >= 12){
+                return "观望";
+            }
+            if(!isPair(mycards)){
+                if(single_rank_pair(mycards,table_cards) >= single_rank_table(table_cards)){
+                    return "跟";
+                }
+            }
+            return "溜了";
         }
 
+        //  感觉这步可以去掉
         if(isThreeOrFour(mycards,table_cards).equals("对子")){
             if(countStraight(table_cards) == 1){
                 return "观望";
@@ -133,28 +175,38 @@ public class MyTactic {
                 return "跟";
             }
         }
-        //判断差一张同花  跟
+
+        //判断差一张同花 2+2 跟
         if(isSameColor(mycards,table_cards) == 1 && table_cards.length <= 4){
-            if(table_cards.length == 3){
+            if(table_cards.length == 3){   // Flop 2+2 同花 观望
                 return "观望";
             }
-            if(table_cards.length == 4){
+            if(table_cards.length == 4){   // Turn 2+2 同花 观望
                 return "观望";
             }
         }
+
+        //TODO 判断是否差1张同花 1+3， 手牌J+ 观望  T-溜了(不管, 让后面判断)
+        if(isSameColor1_3(mycards,table_cards) >= 11){
+            if(table_cards.length <= 4){
+                return "观望";
+            }
+        }
+
 
         //差一张顺子 0为顺子 1为有一个位置(13 22连)，2为有两个位置(4连) 构成顺子
         if(isFlush(mycards,table_cards) == 2 && table_cards.length <= 4){
             return "观望";
         }
 
-        if(isFlush(mycards,table_cards) == 1 && table_cards.length <= 3){
+        if(isFlush(mycards,table_cards) == 1 && table_cards.length <= 4){
             return "观望";
         }
-        //判断nextTactic 是否能组成个小对子， 观望
+
+        /*//判断nextTactic 是否能组成个小对子， 观望.. 这个有用么？？？
         if(isHandAndTable_pairTT(mycards,table_cards)){
             return "溜了";
-        }
+        }*/
 
         //又增加 判断带A 小对  单 TODO 这个需要重新考虑以下要不要加上!!!!!
         /*if(hasA(mycards)){
@@ -257,11 +309,10 @@ public class MyTactic {
         }
         if(max1 > max2 && temp > 1){
             max2 = temp;
-            temp = 1;
         }else if(temp > 1){
             max1 = temp;
-            temp = 1;
         }
+
         if(max1 == 2 && max2 == 1){
             return "对子";
         }
@@ -283,6 +334,7 @@ public class MyTactic {
         return "单牌";
     }
 
+    //判断桌牌是否有对子  方法可以换掉
     public static boolean tableIsPair(String[] s){
         char[] a = new char[s.length];
         for(int i = 0; i < a.length; i++){
@@ -326,7 +378,7 @@ public class MyTactic {
     }
 
 
-    //TODO 判断差几张构成同花 (前提是手牌同花)
+    //判断差几张构成同花 (前提是手牌同花)
     public static int isSameColor(String[] mycards, String[] table_cards){
         if(mycards[0].charAt(1) != mycards[1].charAt(1)){
             return 4;
@@ -345,8 +397,43 @@ public class MyTactic {
         if(num == 0)return 3;
         return 4;
     }
+    //判断是否1+4同花 .0为不是  其他为单牌rank值
+    public static int isSameColor1_4(String[] mycards, String[] table_cards){
+        int j = 0;
+        while(j < 2){
+            int count = 0;
+            for(int i = 0; i < table_cards.length; i++){
+                if(mycards[j].charAt(1) == table_cards[i].charAt(1)){
+                    count++;
+                }
+            }
+            if(count == 4){
+                return pokeNumRank(mycards[j].charAt(0));
+            }
+            j++;
+        }
+        return 0;
+    }
+    //判断是否1+3 同花，0为不是，其他为单牌 rank值
+    public static int isSameColor1_3(String[] mycards, String[] table_cards){
+        int j = 0;
+        while(j < 2){
+            int count = 0;
+            for(int i = 0; i < table_cards.length; i++){
+                if(mycards[j].charAt(1) == table_cards[i].charAt(1)){
+                    count++;
+                }
+            }
+            if(count == 3){
+                return pokeNumRank(mycards[j].charAt(0));
+            }
+            j++;
+        }
+        return 0;
+    }
 
-    // TODO 判断差几张构成顺子 0是顺子，1是差特定1张，2是差特定两张中的任意一张
+
+    //  判断差几张构成顺子 0是顺子，1是差特定1张，2是差特定两张中的任意一张
     public static int isFlush(String[] mycards, String[] table_cards){
         int[] poke = new int [14];
         for(int i = 0; i < poke.length; i++){
@@ -371,9 +458,9 @@ public class MyTactic {
         int step = 1;
         for(int i = 1; i < poke.length; i++){
             if(poke[i] == 0) continue;
+            step =1;
             for(int j = i+1; j < poke.length; j++){
                 if(poke[j] == 0) {
-                    step = 1;
                     break;
                 }
                 step++;
@@ -539,6 +626,8 @@ public class MyTactic {
         }
         return false;
     }
+
+    //判断手牌和桌牌 能否组成至少一个对子
     public static boolean isHandAndTable_pair(String[] mycards, String[] table_cards){
         char c1 = mycards[0].charAt(0);
         char c2 = mycards[1].charAt(0);
@@ -629,7 +718,7 @@ public class MyTactic {
     public static int table_isThreeOrFour(String[] s){
         if(s.length < 3)return 0;
         //判断最大相同数量
-        int max = 1;
+        int max = 0;
         int temp = 0;
         for(int i = 0; i < s.length; i++){
             for(int j = 0; j < s.length; j++){
@@ -644,5 +733,70 @@ public class MyTactic {
         }
         return max;
     }
+    //判断桌牌是否存在 俩个对子
+    public static boolean table_isTwoPairs(String[] table_cards){
+        char[] c = new char[table_cards.length];
+        for(int i = 0; i < c.length; i++){
+            c[i] = table_cards[i].charAt(0);
+        }
+        Arrays.sort(c);
+        int max1 = 1, max2 = 1;
+        int temp = 1;
+        for(int i = 1; i < c.length; i++){
+            if(c[i] == c[i-1]){
+                temp++;
+            }else if(temp > 1){
+                if(max1 > max2){
+                    max2 = temp;
+                    temp = 1;
+                }else{
+                    max1 = temp;
+                    temp = 1;
+                }
+            }
+        }
+        if(temp > 1){
+            if(max1 > max2){
+                max2 = temp;
+            }else{
+                max1 = temp;
+            }
+        }
+        if(max1 == 2 && max2 == 2)return true;
+        return false;
+    }
 
+    //手牌中与桌牌组成对子的 单张牌的rank, 前提是 手牌不为 pair
+    public static int single_rank_pair(String[] mycards, String[] table_cards){
+        int j = 0;
+        while(j < 2){
+            for(int i = 0; i < table_cards.length; i++){
+                if(mycards[j].charAt(0) == table_cards[i].charAt(0)){
+                    return pokeNumRank(mycards[j].charAt(0));
+                }
+            }
+            j++;
+        }
+        return 0;
+    }
+
+    //桌牌上非对子 最大单牌 rank
+    public static int single_rank_table(String[] table_cards){
+        int max = 0;
+        int temp;
+        for(int i = 0; i < table_cards.length; i++){
+            char c = table_cards[i].charAt(0);
+            for(int j = 0; j < table_cards.length; j++){
+                if(j == i)continue;
+                if(c == table_cards[j].charAt(0)){
+                    break;
+                }
+            }
+            temp = pokeNumRank(c);
+            if(temp > max){
+                max = temp;
+            }
+        }
+        return max;
+    }
 }
